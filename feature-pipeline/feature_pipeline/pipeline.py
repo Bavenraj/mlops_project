@@ -4,7 +4,7 @@ from typing import Optional
 from pathlib import Path
 import fire
 import pandas as pd
-
+from yarl import URL
 logging.basicConfig(level=logging.INFO)
 
 def run (
@@ -34,3 +34,12 @@ def run (
             export_start=min_export_start
             export_end=export_start+datetime.timedelta(days=days_export)
             logging.warning("We clapped 'export_start' to 'datetime(2020, 6, 30, 22, 0, 0)' and 'export_end' to 'export_start + datetime.timedelta(days=days_export)' as this is the latest window available in the dataset.")
+    query_params = {
+        "offset": 0,
+        "sort": "HourUTC",
+        "timezone": "utc",
+        "start": export_start.strftime("%Y-%m-%dT%H:%M"),
+        "end": export_end.strftime("%Y-%m-%dT%H:%M"),
+    }
+    url = URL(url) % query_params
+    url = str(url)
