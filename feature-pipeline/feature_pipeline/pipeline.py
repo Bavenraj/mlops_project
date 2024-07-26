@@ -5,6 +5,7 @@ from pathlib import Path
 import fire
 import pandas as pd
 from yarl import URL
+import requests
 logging.basicConfig(level=logging.INFO)
 
 def run (
@@ -17,6 +18,7 @@ def run (
     datetime_format: str = "%Y-%m-%d %H:%M",
     cache_dir: Optional[Path] = None,
 ):
+    # extraction
     logging.info(f"Extracting data from API")
     if last_export_datetime is None:
         last_export_datetime = datetime.datetime( 2023, 6, 30, 21, 0, 0) + datetime.timedelta(days=days_delay)
@@ -43,3 +45,11 @@ def run (
     }
     url = URL(url) % query_params
     url = str(url)
+    logging.info(f"Requesting data from API with : {url}")
+    response = requests.get(url)
+    logging.info("The response received with a status code of : {response.status_code}")
+    try:
+        response = response.json()
+    except:
+        logging.error(f"Response status = {response.status_code}. Could not decode response from API")
+
