@@ -53,7 +53,6 @@ def run (
             logging.error(
                 f"Response status = {response.status_code}. Could not download the file due to: {e}"
             )
-
             return None
         
         if response.status_code != 200:
@@ -75,25 +74,43 @@ def run (
 
     records = data[(data["HourUTC"] >= export_start.strftime(datetime_format)) & (data["HourUTC"] < export_end.strftime(datetime_format))]
 
-    # _extract_records_from_api_url
-    query_params = {
-        "offset": 0,
-        "sort": "HourUTC",
-        "timezone": "utc",
-        "start": export_start.strftime("%Y-%m-%dT%H:%M"),
-        "end": export_end.strftime("%Y-%m-%dT%H:%M"),
+    metadata = {
+        "days_delay": days_delay,
+        "days_export": days_export,
+        "url": url,
+        "export_datetime_utc_start": export_start.strftime(datetime_format),
+        "export_datetime_utc_end": export_end.strftime(datetime_format),
+        "datetime_format": datetime_format,
+        "num_unique_samples_per_time_series": len(records["HourUTC"].unique()),
     }
-    url = URL(url) % query_params
-    url = str(url)
-    logging.info(f"Requesting data from API with : {url}")
-    response = requests.get(url)
-    logging.info("The response received with a status code of : {response.status_code}")
-    try:
-        response = response.json()
-    except:
-        logging.error(f"Response status = {response.status_code}. Could not decode response from API")
+
+    if metadata["num_unique_samples_per_time_series"] < days_export * 24:
+        raise RuntimeError(
+            f"Could not extract the expected number of samples from the api: {metadata['num_unique_samples_per_time_series']} < {days_export * 24}. \
+            Check out the API at: https://www.energidataservice.dk/tso-electricity/ConsumptionDE35Hour ")
     
-    records = response["records"]
-    records = pd.DataFrame.from_records(records)
+    logging.info("Successfully extracted data from API.")
+
+
+    # _extract_records_from_api_url wont be used since API is inactive
+    # query_params = {
+    #     "offset": 0,
+    #     "sort": "HourUTC",
+    #     "timezone": "utc",
+    #     "start": export_start.strftime("%Y-%m-%dT%H:%M"),
+    #     "end": export_end.strftime("%Y-%m-%dT%H:%M"),
+    # }
+    # url = URL(url) % query_params
+    # url = str(url)
+    # logging.info(f"Requesting data from API with : {url}")
+    # response = requests.get(url)
+    # logging.info("The response received with a status code of : {response.status_code}")
+    # try:
+    #     response = response.json()
+    # except:
+    #     logging.error(f"Response status = {response.status_code}. Could not decode response from API")
+    
+    # records = response["records"]
+    # records = pd.DataFrame.from_records(records)
 
 
