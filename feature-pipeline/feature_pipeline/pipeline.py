@@ -89,9 +89,14 @@ def run (
             f"Could not extract the expected number of samples from the api: {metadata['num_unique_samples_per_time_series']} < {days_export * 24}. \
             Check out the API at: https://www.energidataservice.dk/tso-electricity/ConsumptionDE35Hour ")
     
-    logging.info("Successfully extracted data from API.")
+    logging.info("Successfully extracted data from File.")
 
-
+    logging.info("Transforming Data")
+    df = pd.DataFrame(records)
+    data = df.copy()
+    data.drop(columns=["HourDK"], inplace=True)
+    data.rename(   columns={ "HourUTC": "datetime_utc","PriceArea": "area","ConsumerType_DE35": "consumer_type", "TotalCon": "energy_consumption" }, inplace=True,)
+    
     # _extract_records_from_api_url wont be used since API is inactive
     # query_params = {
     #     "offset": 0,
@@ -113,4 +118,5 @@ def run (
     # records = response["records"]
     # records = pd.DataFrame.from_records(records)
 
-
+def extraction():
+    """Will add here soon"""
