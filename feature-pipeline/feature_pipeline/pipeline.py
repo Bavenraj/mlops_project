@@ -250,10 +250,14 @@ def run (
     logging.info("Successfully built validation expectation suite.")
 
     logging.info(f"Validating data and loading it to the feature store.")
+
+    # Connect to feature store.
     project = hopsworks.login(
         api_key_value= os.getenv("FS_API_KEY"), project= os.getenv("FS_PROJECT_NAME")
     )
     feature_store = project.get_feature_store()
+
+    # Create feature group.
     energy_feature_group = feature_store.get_or_create_feature_group(
     name="energy_consumption_denmark",
     version=feature_group_version,
@@ -262,6 +266,16 @@ def run (
     event_time="datetime_utc",
     online_enabled=False,
     expectation_suite=expectation_suite_energy_consumption,
-)
+    )
+    
+    # Upload data.
+    energy_feature_group.insert(
+        features=data,
+        overwrite=False,
+        write_options={
+            "wait_for_job": True,
+        },
+    )
+
 def extraction():
     """Will add here soon"""
