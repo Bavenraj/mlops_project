@@ -8,6 +8,8 @@ from pandas.errors import EmptyDataError
 from yarl import URL
 import requests
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
+import hopsworks
+from hsfs.feature_group import FeatureGroup
 logging.basicConfig(level=logging.INFO)
 
 def run (
@@ -241,6 +243,9 @@ def run (
         )
     )
 
+    logging.info("Successfully built validation expectation suite.")
+
+    logging.info(f"Validating data and loading it to the feature store.")
 
 def extraction():
     """Will add here soon"""
