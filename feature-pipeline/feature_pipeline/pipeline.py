@@ -7,6 +7,7 @@ import pandas as pd
 from pandas.errors import EmptyDataError
 from yarl import URL
 import requests
+from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 logging.basicConfig(level=logging.INFO)
 
 def run (
@@ -100,6 +101,146 @@ def run (
     data["area"] = data["area"].astype("string")
     data["consumer_type"] = data["consumer_type"].astype("int32")
     data["energy_consumption"] = data["energy_consumption"].astype("float64")
+    area_mappings = {"DK": 0, "DK1": 1, "DK2": 2}
+    data["area"] = data["area"].map(area_mappings).astype("int8")
+    logging.info("Successfully transformed Data")
+
+    logging.info("Building validation expectation suite.")
+    expectation_suite_energy_consumption = ExpectationSuite(
+        expectation_suite_name="energy_consumption_suite"
+    )
+    #first expectation to see whether column is in correct list
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_table_columns_to_match_ordered_list",
+            kwargs={
+                "column_list": [
+                    "datetime_utc",
+                    "area",
+                    "consumer_type",
+                    "energy_consumption",
+                ]
+            },
+        )
+    )
+    
+    #second expectation to see whether all 4 columns is available
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_table_column_count_to_equal", kwargs={"value": 4}
+        )
+    )
+    
+    #third expectation to ensure date column is not null
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_not_be_null",
+            kwargs={"column": "datetime_utc"},
+        )
+    )
+    
+    #fourth expectation to ensure that all three area values is available
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_distinct_values_to_be_in_set",
+            kwargs={"column": "area", "value_set": (0, 1, 2)},
+        )
+    )
+    
+    #fifth expectation to ensure that the area column is integer type
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_of_type",
+            kwargs={"column": "area", "type_": "int8"},
+        )
+    )
+
+    #sixth expectation to ensure that all the area value to be in the dataset
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_distinct_values_to_be_in_set",
+            kwargs={
+                "column": "consumer_type",
+                "value_set": (
+                    111,
+                    112,
+                    119,
+                    121,
+                    122,
+                    123,
+                    130,
+                    211,
+                    212,
+                    215,
+                    220,
+                    310,
+                    320,
+                    330,
+                    340,
+                    350,
+                    360,
+                    370,
+                    381,
+                    382,
+                    390,
+                    410,
+                    421,
+                    422,
+                    431,
+                    432,
+                    433,
+                    441,
+                    442,
+                    443,
+                    444,
+                    445,
+                    446,
+                    447,
+                    450,
+                    461,
+                    462,
+                    999,
+                ),
+            },
+        )
+    )
+    
+    #seventh expectation to ensure that the consumer column is integer type
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_of_type",
+            kwargs={"column": "consumer_type", "type_": "int32"},
+        )
+    )
+
+    #eighth expectation to ensure that the minimum consumption is 0
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_min_to_be_between",
+            kwargs={
+                "column": "energy_consumption",
+                "min_value": 0,
+                "strict_min": False,
+            },
+        )
+    )
+    
+    #ninth expectation to ensure that the consumption is in float type
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_of_type",
+            kwargs={"column": "energy_consumption", "type_": "float64"},
+        )
+    )
+    
+    #tenth expectation to ensure that the consumption is not null
+    expectation_suite_energy_consumption.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_column_values_to_not_be_null",
+            kwargs={"column": "energy_consumption"},
+        )
+    )
+
 
 def extraction():
     """Will add here soon"""
