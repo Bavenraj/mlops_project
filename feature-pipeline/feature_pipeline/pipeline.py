@@ -10,6 +10,10 @@ import requests
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import hopsworks
 from hsfs.feature_group import FeatureGroup
+import os
+from dotenv import load_dotenv, dotenv_values
+import time
+load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
 
 def run (
@@ -246,6 +250,18 @@ def run (
     logging.info("Successfully built validation expectation suite.")
 
     logging.info(f"Validating data and loading it to the feature store.")
-
+    project = hopsworks.login(
+        api_key_value= os.getenv("FS_API_KEY"), project= os.getenv("FS_PROJECT_NAME")
+    )
+    feature_store = project.get_feature_store()
+    energy_feature_group = feature_store.get_or_create_feature_group(
+    name="energy_consumption_denmark",
+    version=feature_group_version,
+    description="Denmark hourly energy consumption data. Data is uploaded with an 15 days delay.",
+    primary_key=["area", "consumer_type"],
+    event_time="datetime_utc",
+    online_enabled=False,
+    expectation_suite=expectation_suite_energy_consumption,
+)
 def extraction():
     """Will add here soon"""
