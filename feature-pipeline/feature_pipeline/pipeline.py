@@ -12,7 +12,7 @@ import hopsworks
 from hsfs.feature_group import FeatureGroup
 import os
 from dotenv import load_dotenv, dotenv_values
-import time
+import json
 load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
 
@@ -312,6 +312,21 @@ def run (
     for description in feature_descriptions:
         energy_feature_group.update_feature_description(
             description["name"], description["description"]
-        )        
-def extraction():
-    """Will add here soon"""
+        )
+
+    # Update statistics.
+    energy_feature_group.statistics_config = {
+        "enabled": True,
+        "histograms": True,
+        "correlations": True,
+    }
+    energy_feature_group.update_statistics_config()
+    energy_feature_group.compute_statistics()
+    metadata["feature_group_version"] = feature_group_version
+    logging.info("Successfully validated data and loaded it to the feature store.")
+
+    logging.info(f"Wrapping up the pipeline.")
+    data_path = "./output/feature_pipeline_metadata.json"
+    with open(data_path, "w") as f:
+        json.dump(data, f)
+    logging.info("Done!")
