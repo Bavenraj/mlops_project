@@ -95,28 +95,11 @@ def run (
     df = pd.DataFrame(records)
     data = df.copy()
     data.drop(columns=["HourDK"], inplace=True)
-    data.rename(   columns={ "HourUTC": "datetime_utc","PriceArea": "area","ConsumerType_DE35": "consumer_type", "TotalCon": "energy_consumption" }, inplace=True,)
-    
-    # _extract_records_from_api_url wont be used since API is inactive
-    # query_params = {
-    #     "offset": 0,
-    #     "sort": "HourUTC",
-    #     "timezone": "utc",
-    #     "start": export_start.strftime("%Y-%m-%dT%H:%M"),
-    #     "end": export_end.strftime("%Y-%m-%dT%H:%M"),
-    # }
-    # url = URL(url) % query_params
-    # url = str(url)
-    # logging.info(f"Requesting data from API with : {url}")
-    # response = requests.get(url)
-    # logging.info("The response received with a status code of : {response.status_code}")
-    # try:
-    #     response = response.json()
-    # except:
-    #     logging.error(f"Response status = {response.status_code}. Could not decode response from API")
-    
-    # records = response["records"]
-    # records = pd.DataFrame.from_records(records)
+    data.rename(columns={ "HourUTC": "datetime_utc","PriceArea": "area","ConsumerType_DE35": "consumer_type", "TotalCon": "energy_consumption" }, inplace=True)
+    data["datetime_utc"] = pd.to_datetime(data["datetime_utc"])
+    data["area"] = data["area"].astype("string")
+    data["consumer_type"] = data["consumer_type"].astype("int32")
+    data["energy_consumption"] = data["energy_consumption"].astype("float64")
 
 def extraction():
     """Will add here soon"""
