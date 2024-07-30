@@ -48,10 +48,10 @@ def extraction(
     # _extract_records_from_file_url
     if cache_dir is None:
         cache_dir = "./output/data"
-        cache_dir.mkdir(parents=True, exist_ok=True)
+        os.makedirs(cache_dir, exist_ok=True)
         
-    file_path = cache_dir / "ConsumptionDE35Hour.csv"
-    if not file_path.exists():
+    file_path = f"{cache_dir}/ConsumptionDE35Hour.csv"
+    if not os.path.exists(file_path):
         logging.info(f"Downloading data from: {url}")
 
         try:
@@ -64,7 +64,7 @@ def extraction(
         if response.status_code != 200:
             raise ValueError(f"Response status = {response.status_code}. Could not download the file.")
 
-        with file_path.open("w") as f:
+        with open(file_path, "w") as f:
             f.write(response.text)
 
         logging.info(f"Successfully downloaded data to: {file_path}")
