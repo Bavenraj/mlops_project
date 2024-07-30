@@ -16,16 +16,16 @@ import json
 load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
 
-def run (
+
+def extraction(
     # the date is set to current date for first export
     last_export_datetime: Optional[datetime.datetime] = None,
     days_delay: int = 15,
     days_export: int = 30,
     url: str = "https://drive.google.com/uc?export=download&id=1y48YeDymLurOTUO-GeFOUXVNc9MCApG5",
-    feature_group_version: int = 1,
     datetime_format: str = "%Y-%m-%d %H:%M",
     cache_dir: Optional[Path] = None,
-):
+): 
     # extraction
     logging.info(f"Extracting data from API")
     if last_export_datetime is None:
@@ -44,7 +44,7 @@ def run (
             export_start=min_export_start
             export_end=export_start+datetime.timedelta(days=days_export)
             logging.warning("We clapped 'export_start' to 'datetime(2020, 6, 30, 22, 0, 0)' and 'export_end' to 'export_start + datetime.timedelta(days=days_export)' as this is the latest window available in the dataset.")
-    
+
     # _extract_records_from_file_url
     if cache_dir is None:
         cache_dir = "./output/data"
@@ -60,11 +60,10 @@ def run (
             logging.error(
                 f"Response status = {response.status_code}. Could not download the file due to: {e}"
             )
-            return None
         
         if response.status_code != 200:
             raise ValueError(f"Response status = {response.status_code}. Could not download the file.")
-    
+
         with file_path.open("w") as f:
             f.write(response.text)
 
@@ -95,9 +94,12 @@ def run (
         raise RuntimeError(
             f"Could not extract the expected number of samples from the api: {metadata['num_unique_samples_per_time_series']} < {days_export * 24}. \
             Check out the API at: https://www.energidataservice.dk/tso-electricity/ConsumptionDE35Hour ")
-    
+
     logging.info("Successfully extracted data from File.")
 
+    return records, metadata
+
+def transformation(records):
     logging.info("Transforming Data")
     df = pd.DataFrame(records)
     data = df.copy()
@@ -110,12 +112,14 @@ def run (
     area_mappings = {"DK": 0, "DK1": 1, "DK2": 2}
     data["area"] = data["area"].map(area_mappings).astype("int8")
     logging.info("Successfully transformed Data")
+    return data 
 
+def validation():
     logging.info("Building validation expectation suite.")
     expectation_suite_energy_consumption = ExpectationSuite(
         expectation_suite_name="energy_consumption_suite"
     )
-    
+
     #first expectation to see whether column is in correct list
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -130,14 +134,14 @@ def run (
             },
         )
     )
-    
+
     #second expectation to see whether all 4 columns is available
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
             expectation_type="expect_table_column_count_to_equal", kwargs={"value": 4}
         )
     )
-    
+
     #third expectation to ensure date column is not null
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -145,7 +149,7 @@ def run (
             kwargs={"column": "datetime_utc"},
         )
     )
-    
+
     #fourth expectation to ensure that all three area values is available
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -153,7 +157,7 @@ def run (
             kwargs={"column": "area", "value_set": (0, 1, 2)},
         )
     )
-    
+
     #fifth expectation to ensure that the area column is integer type
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -211,7 +215,7 @@ def run (
             },
         )
     )
-    
+
     #seventh expectation to ensure that the consumer column is integer type
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -231,7 +235,7 @@ def run (
             },
         )
     )
-    
+
     #ninth expectation to ensure that the consumption is in float type
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -239,7 +243,7 @@ def run (
             kwargs={"column": "energy_consumption", "type_": "float64"},
         )
     )
-    
+
     #tenth expectation to ensure that the consumption is not null
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
@@ -250,6 +254,9 @@ def run (
 
     logging.info("Successfully built validation expectation suite.")
 
+    return expectation_suite_energy_consumption
+
+def loading(data, metadata, expectation_suite_energy_consumption, feature_group_version: int = 1):
     logging.info(f"Validating data and loading it to the feature store.")
 
     # Connect to feature store.
@@ -332,4 +339,8 @@ def run (
         json.dump(data, f)
     logging.info("Done!")
 
-    
+
+records, metadata = extraction()
+data = transformation(records)
+expectation_suite_energy_consumption = validation()
+loading(data=data, metadata=metadata, expectation_suite_energy_consumption=expectation_suite_energy_consumption)
