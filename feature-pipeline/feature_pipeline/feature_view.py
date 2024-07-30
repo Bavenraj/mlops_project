@@ -15,8 +15,7 @@ def create(
     feature_group_version: Optional[int] = None,
     start_datetime: Optional[datetime] = None,
     end_datetime: Optional[datetime] = None,
-) -> dict:
-
+) : 
     if feature_group_version is None:
         data_path = "./output/feature_pipeline_metadata.json"
         if not data_path.exists():
@@ -51,7 +50,7 @@ def create(
 
     try:
         feature_views = fs.get_feature_views(name="energy_consumption_denmark_view")
-        
+
     except hsfs.client.exceptions.RestAPIError:
         logging.info("No feature views found for energy_consumption_denmark_view.")
 
@@ -61,18 +60,17 @@ def create(
         try:
             feature_view.delete_all_training_datasets()
         except hsfs.client.exceptions.RestAPIError:
-            logger.error(
+            logging.error(
                 f"Failed to delete training datasets for feature view {feature_view.name} with version {feature_view.version}."
             )
 
         try:
             feature_view.delete()
         except hsfs.client.exceptions.RestAPIError:
-            logger.error(
+            logging.error(
                 f"Failed to delete feature view {feature_view.name} with version {feature_view.version}."
             )
 
-    # Create feature view in the given feature group version.
     energy_consumption_fg = fs.get_feature_group(
         "energy_consumption_denmark", version=feature_group_version
     )
@@ -84,8 +82,7 @@ def create(
         labels=[],
     )
 
-    # Create training dataset.
-    logger.info(
+    logging.info(
         f"Creating training dataset between {start_datetime} and {end_datetime}."
     )
     feature_view.create_training_data(
@@ -102,10 +99,10 @@ def create(
         "feature_view_version": feature_view.version,
         "training_dataset_version": 1,
     }
-    utils.save_json(
-        metadata,
-        file_name="feature_view_metadata.json",
-    )
+ 
+    data_path = "./output/feature_view_metadata.json"
+    with open(data_path, "w") as f:
+        json.dump(metadata, f)
 
-    return metadata
+    #return metadata
 

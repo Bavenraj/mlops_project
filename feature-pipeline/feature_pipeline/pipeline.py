@@ -115,6 +115,7 @@ def run (
     expectation_suite_energy_consumption = ExpectationSuite(
         expectation_suite_name="energy_consumption_suite"
     )
+    
     #first expectation to see whether column is in correct list
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
