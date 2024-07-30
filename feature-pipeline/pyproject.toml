@@ -6,8 +6,9 @@ authors = ["Bavenraj <bavenraj08@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "~3.9"
 pendulum = "^3.0.0"
+hopsworks = "3.7.0"
 
 
 [build-system]
