@@ -37,13 +37,13 @@ def extraction(
     if last_export_datetime > expiring_dataset_datetime:
         last_export_datetime = expiring_dataset_datetime
         logging.warning("We clapped the last export datetime + datetime.timedelta(days=days_delay)")
-        export_end = last_export_datetime - datetime.timedelta(days=days_delay)
-        export_start = last_export_datetime - datetime.timedelta(days=days_delay + days_export)
-        min_export_start = datetime.datetime(2020, 6, 30, 22, 0, 0)
-        if export_start < min_export_start:
-            export_start=min_export_start
-            export_end=export_start+datetime.timedelta(days=days_export)
-            logging.warning("We clapped 'export_start' to 'datetime(2020, 6, 30, 22, 0, 0)' and 'export_end' to 'export_start + datetime.timedelta(days=days_export)' as this is the latest window available in the dataset.")
+    export_end = last_export_datetime - datetime.timedelta(days=days_delay)
+    export_start = last_export_datetime - datetime.timedelta(days=days_delay + days_export)
+    min_export_start = datetime.datetime(2020, 6, 30, 22, 0, 0)
+    if export_start < min_export_start:
+        export_start=min_export_start
+        export_end=export_start+datetime.timedelta(days=days_export)
+        logging.warning("We clapped 'export_start' to 'datetime(2020, 6, 30, 22, 0, 0)' and 'export_end' to 'export_start + datetime.timedelta(days=days_export)' as this is the latest window available in the dataset.")
 
     # _extract_records_from_file_url
     if cache_dir is None:
@@ -154,7 +154,7 @@ def validation():
     expectation_suite_energy_consumption.add_expectation(
         ExpectationConfiguration(
             expectation_type="expect_column_distinct_values_to_be_in_set",
-            kwargs={"column": "area", "value_set": (0, 1, 2)},
+            kwargs={"column": "area", "value_set": [0, 1, 2]},
         )
     )
 
@@ -172,7 +172,7 @@ def validation():
             expectation_type="expect_column_distinct_values_to_be_in_set",
             kwargs={
                 "column": "consumer_type",
-                "value_set": (
+                "value_set": [
                     111,
                     112,
                     119,
@@ -211,7 +211,7 @@ def validation():
                     461,
                     462,
                     999,
-                ),
+                ],
             },
         )
     )
