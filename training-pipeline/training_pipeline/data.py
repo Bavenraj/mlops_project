@@ -10,7 +10,6 @@ import logging
 load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
 
-
 def load_dataset_from_feature_store(
     feature_view_version: int, training_dataset_version: int, fh: int = 24
 ):
@@ -84,13 +83,6 @@ def load_dataset_from_feature_store(
 def prepare_data(
     data: pd.DataFrame, target: str = "energy_consumption", fh: int = 24
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Structure the data for training:
-    - Set the index as is required by sktime.
-    - Prepare exogenous variables.
-    - Prepare the time series to be forecasted.
-    - Split the data into train and test sets.
-    """
 
     # Set the index as is required by sktime.
     data["datetime_utc"] = pd.PeriodIndex(data["datetime_utc"], freq="H")
