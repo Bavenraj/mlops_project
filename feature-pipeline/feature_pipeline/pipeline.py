@@ -21,7 +21,7 @@ def extraction(
     # the date is set to current date for first export
     last_export_datetime: Optional[datetime.datetime] = None,
     days_delay: int = 15,
-    days_export: int = 30,
+    days_export: int = ,
     url: str = "https://drive.google.com/uc?export=download&id=1y48YeDymLurOTUO-GeFOUXVNc9MCApG5",
     datetime_format: str = "%Y-%m-%d %H:%M",
     cache_dir: Optional[Path] = None,
