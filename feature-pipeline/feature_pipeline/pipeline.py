@@ -7,7 +7,7 @@ import pandas as pd
 from pandas.errors import EmptyDataError
 from yarl import URL
 import requests
-from great_expectations.core import , ExpectationConfigurationg
+from great_expectations.core import ExpectationSuite, ExpectationConfigurationg
 import hopsworks
 from hsfs.feature_group import FeatureGroup
 import os
