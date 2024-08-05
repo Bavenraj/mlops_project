@@ -4,7 +4,7 @@ from typing import Optional
 from pathlib import Path
 import fire
 import pandas as pd
-from pandas.errors import EmptyDataError
+from pandas.errors import 
 from yarl import URL
 import requests
 from great_expectations.core import ExpectationSuite, ExpectationConfigurationg
