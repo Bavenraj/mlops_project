@@ -11,7 +11,7 @@ from great_expectations.core import ExpectationSuite, ExpectationConfigurationg
 import hopsworks
 from hsfs.feature_group import FeatureGroup
 import os
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv, dotenv_vgialues
 import json
 load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
