@@ -9,7 +9,7 @@ from yarl import URL
 import requests
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import hopsworks
-from hsfs.feature_group import FeatureGroup
+from hsfs.feature_group import 
 import os
 from dotenv import load_dotenv, dotenv_values
 import json
