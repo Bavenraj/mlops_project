@@ -9,12 +9,12 @@ from yarl import URL
 import requests
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import hopsworks
-from hsfs.feature_group import 
+from hsfs.feature_group import FeatureGroup
 import os
 from dotenv import load_dotenv, dotenv_values
 import json
-load_dotenv("../.env.default")
-logging.basicConfig(level=logging.INFO)
+#load_dotenv("../.env.default")
+#logging.basicConfig(level=logging.INFO)
 
 
 def extraction(
