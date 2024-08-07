@@ -13,7 +13,7 @@ from hsfs.feature_group import FeatureGroup
 import os
 from dotenv import load_dotenv, dotenv_values
 import json
-#load_dotenv("../.env.default")
+load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
 
 
