@@ -14,7 +14,7 @@ import os
 from dotenv import load_dotenv, dotenv_values
 import json
 #load_dotenv("../.env.default")
-#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 
 def extraction(
