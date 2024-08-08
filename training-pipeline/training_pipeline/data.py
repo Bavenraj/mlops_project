@@ -114,21 +114,3 @@ def load_dataset_from_feature_store(
         run.finish()
 
     return y_train, y_test, X_train, X_test
-
-
-def prepare_data(
-    data: pd.DataFrame, target: str = "energy_consumption", fh: int = 24
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-
-    # Set the index as is required by sktime.
-    data["datetime_utc"] = pd.PeriodIndex(data["datetime_utc"], freq="H")
-    data = data.set_index(["area", "consumer_type", "datetime_utc"]).sort_index()
-
-    # Prepare exogenous variables.
-    X = data.drop(columns=[target])
-    # Prepare the time series to be forecasted.
-    y = data[[target]]
-
-    y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=fh)
-
-    return y_train, y_test, X_train, X_test
