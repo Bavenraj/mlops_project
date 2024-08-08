@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 import os
 import hopsworks
 import pandas as pd
@@ -9,6 +9,34 @@ import logging
 
 load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
+
+def init_wandb_run(
+    name: str,
+    group: Optional[str] = None,
+    job_type: Optional[str] = None,
+    add_timestamp_to_name: bool = False,
+    run_id: Optional[str] = None,
+    resume: Optional[str] = None,
+    reinit: bool = False,
+    project: str = os.getenv("WANDB_PROJECT"),
+    entity: str = os.getenv("WANDB_ENTITY"),
+):
+
+    if add_timestamp_to_name:
+        name = f"{name}_{pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+
+    run = wandb.init(
+        project=project,
+        entity=entity,
+        name=name,
+        group=group,
+        job_type=job_type,
+        id=run_id,
+        reinit=reinit,
+        resume=resume,
+    )
+
+    return run
 
 def load_dataset_from_feature_store(
     feature_view_version: int, training_dataset_version: int, fh: int = 24
