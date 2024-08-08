@@ -78,8 +78,16 @@ def load_dataset_from_feature_store(
         name="train_test_split", job_type="prepare_dataset", group="dataset"
     ) as run:
         run.use_artifact("energy_consumption_denmark_feature_view:latest")
+        
+        data["datetime_utc"] = pd.PeriodIndex(data["datetime_utc"], freq="H")
+        data = data.set_index(["area", "consumer_type", "datetime_utc"]).sort_index()
 
-        y_train, y_test, X_train, X_test = prepare_data(data, fh=fh)
+        X = data.drop(columns=["energy_consumption"])
+        # Prepare the time series to be forecasted.
+        y = data[["energy_consumption"]]
+
+        y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=fh)
+        #y_train, y_test, X_train, X_test = prepare_data(data, fh=fh)
 
         for split in ["train", "test"]:
             split_X = locals()[f"X_{split}"]
