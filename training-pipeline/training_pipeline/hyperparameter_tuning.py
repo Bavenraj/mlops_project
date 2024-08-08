@@ -245,7 +245,16 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
         cv = ExpandingWindowSplitter(
             step_length=cv_step_length, fh=np.arange(fh) + 1, initial_window=initial_window
         )
-        render_cv_scheme(cv, y_train)
+        random_time_series = (
+            y_train.groupby(level=[0, 1])
+            .get_group((1, 111))
+            .reset_index(level=[0, 1], drop=True)
+        )
+        plot_windows(cv, random_time_series)
+
+        save_path = "./output/cv_scheme.png"
+        plt.savefig(save_path)
+        wandb.log({"cv_scheme": wandb.Image(save_path)})
 
         results = cv_evaluate(
             forecaster=model,
@@ -289,50 +298,6 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
 
         run.finish()
     
-def train_model_cv(
-    model, y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int, k: int = 3
-):
-    """Train and evaluate the given model using cross-validation."""
-
-    data_length = len(y_train.index.get_level_values(-1).unique())
-    assert data_length >= fh * 10, "Not enough data to perform a 3 fold CV."
-
-    cv_step_length = data_length // k
-    initial_window = max(fh * 3, cv_step_length - fh)
-    cv = ExpandingWindowSplitter(
-        step_length=cv_step_length, fh=np.arange(fh) + 1, initial_window=initial_window
-    )
-    render_cv_scheme(cv, y_train)
-
-    results = cv_evaluate(
-        forecaster=model,
-        y=y_train,
-        X=X_train,
-        cv=cv,
-        strategy="refit",
-        scoring=MeanAbsolutePercentageError(symmetric=False),
-        error_score="raise",
-        return_data=False,
-    )
-
-    results = results.rename(
-        columns={
-            "test_MeanAbsolutePercentageError": "MAPE",
-            "fit_time": "fit_time",
-            "pred_time": "prediction_time",
-        }
-    )
-    mean_results = results[["MAPE", "fit_time", "prediction_time"]].mean(axis=0)
-    mean_results = mean_results.to_dict()
-    results = {"validation": mean_results}
-
-    logging.info(f"Validation MAPE: {results['validation']['MAPE']:.2f}")
-    logging.info(f"Mean fit time: {results['validation']['fit_time']:.2f} s")
-    logging.info(f"Mean predict time: {results['validation']['prediction_time']:.2f} s")
-
-    return model, results
-
-
 def render_cv_scheme(cv, y_train: pd.DataFrame) -> str:
     """Render the CV scheme used for training and log it to W&B."""
 
