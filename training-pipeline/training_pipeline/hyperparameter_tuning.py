@@ -34,7 +34,6 @@ def init_wandb_run(
     project: str = os.getenv("WANDB_PROJECT"),
     entity: str = os.getenv("WANDB_ENTITY"),
 ):
-
     if add_timestamp_to_name:
         name = f"{name}_{pd.Timestamp.now().strftime('%Y-%m-%d_%H-%M-%S')}"
 
@@ -297,20 +296,4 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
         run.log_artifact(artifact)
 
         run.finish()
-    
-def render_cv_scheme(cv, y_train: pd.DataFrame) -> str:
-    """Render the CV scheme used for training and log it to W&B."""
-
-    random_time_series = (
-        y_train.groupby(level=[0, 1])
-        .get_group((1, 111))
-        .reset_index(level=[0, 1], drop=True)
-    )
-    plot_windows(cv, random_time_series)
-
-    save_path = str(OUTPUT_DIR / "cv_scheme.png")
-    plt.savefig(save_path)
-    wandb.log({"cv_scheme": wandb.Image(save_path)})
-
-    return save_path
 
