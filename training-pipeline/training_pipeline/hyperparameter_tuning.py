@@ -1,6 +1,5 @@
 from functools import partial
 from typing import Optional
-
 import fire
 import numpy as np
 import pandas as pd
@@ -11,19 +10,18 @@ import os
 from dotenv import load_dotenv, dotenv_values
 import logging
 import lightgbm as lgb
-
 from sktime.forecasting.compose import make_reduction, ForecastingPipeline
 from sktime.forecasting.naive import NaiveForecaster
 from sktime.transformations.series.date import DateTimeFeatures
 from sktime.transformations.series.summarize import WindowSummarizer
 load_dotenv("../.env.default")
 logging.basicConfig(level=logging.INFO)
-
 from matplotlib import pyplot as plt
 from sktime.forecasting.model_evaluation import evaluate as cv_evaluate
 from sktime.forecasting.model_selection import ExpandingWindowSplitter, temporal_train_test_split
 from sktime.performance_metrics.forecasting import MeanAbsolutePercentageError
 from sktime.utils.plotting import plot_windows
+from training_pipeline import transformers
 
 def init_wandb_run(
     name: str,
@@ -239,9 +237,42 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
             ]
         )
         model = pipe.set_params(**config)
-        #model = build_model(config)
+        data_length = len(y_train.index.get_level_values(-1).unique())
+        assert data_length >= fh * 10, "Not enough data to perform a 3 fold CV."
 
-        model, results = train_model_cv(model, y_train, X_train, fh=fh)
+        cv_step_length = data_length // 3 # k =3
+        initial_window = max(fh * 3, cv_step_length - fh)
+        cv = ExpandingWindowSplitter(
+            step_length=cv_step_length, fh=np.arange(fh) + 1, initial_window=initial_window
+        )
+        render_cv_scheme(cv, y_train)
+
+        results = cv_evaluate(
+            forecaster=model,
+            y=y_train,
+            X=X_train,
+            cv=cv,
+            strategy="refit",
+            scoring=MeanAbsolutePercentageError(symmetric=False),
+            error_score="raise",
+            return_data=False,
+        )
+
+        results = results.rename(
+            columns={
+                "test_MeanAbsolutePercentageError": "MAPE",
+                "fit_time": "fit_time",
+                "pred_time": "prediction_time",
+            }
+        )
+        mean_results = results[["MAPE", "fit_time", "prediction_time"]].mean(axis=0)
+        mean_results = mean_results.to_dict()
+        results = {"validation": mean_results}
+
+        logging.info(f"Validation MAPE: {results['validation']['MAPE']:.2f}")
+        logging.info(f"Mean fit time: {results['validation']['fit_time']:.2f} s")
+        logging.info(f"Mean predict time: {results['validation']['prediction_time']:.2f} s")
+
         wandb.log(results)
 
         metadata = {
@@ -257,8 +288,7 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
         run.log_artifact(artifact)
 
         run.finish()
-
-
+    
 def train_model_cv(
     model, y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int, k: int = 3
 ):
@@ -296,9 +326,9 @@ def train_model_cv(
     mean_results = mean_results.to_dict()
     results = {"validation": mean_results}
 
-    logger.info(f"Validation MAPE: {results['validation']['MAPE']:.2f}")
-    logger.info(f"Mean fit time: {results['validation']['fit_time']:.2f} s")
-    logger.info(f"Mean predict time: {results['validation']['prediction_time']:.2f} s")
+    logging.info(f"Validation MAPE: {results['validation']['MAPE']:.2f}")
+    logging.info(f"Mean fit time: {results['validation']['fit_time']:.2f} s")
+    logging.info(f"Mean predict time: {results['validation']['prediction_time']:.2f} s")
 
     return model, results
 
