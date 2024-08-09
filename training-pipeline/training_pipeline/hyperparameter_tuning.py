@@ -21,7 +21,7 @@ from sktime.forecasting.model_evaluation import evaluate as cv_evaluate
 from sktime.forecasting.model_selection import ExpandingWindowSplitter, temporal_train_test_split
 from sktime.performance_metrics.forecasting import MeanAbsolutePercentageError
 from sktime.utils.plotting import plot_windows
-from training_pipeline import transformers
+import transformers
 
 def init_wandb_run(
     name: str,
