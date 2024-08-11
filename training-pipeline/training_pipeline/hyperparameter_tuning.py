@@ -4,6 +4,7 @@ import fire
 import numpy as np
 import pandas as pd
 import wandb
+import orjson
 import json
 import hopsworks
 import os
@@ -135,7 +136,7 @@ def run(
     
     data_path = "./output/feature_view_metadata.json"
     with open(data_path, "r") as f:
-        feature_view_metadata = json.load(f)
+        feature_view_metadata = orjson.load(f)
         
     if feature_view_version is None:
         feature_view_version = feature_view_metadata["feature_view_version"]
@@ -182,7 +183,7 @@ def run(
     metadata = {"sweep_id": sweep_id}
     data_path = "./output/last_sweep_metadata.json"
     with open(data_path, "w") as f:
-        json.dump(metadata, f)
+        orjson.dump(metadata, f)
     return metadata
 
 

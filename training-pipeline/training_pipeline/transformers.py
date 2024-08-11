@@ -1,5 +1,5 @@
 from sktime.transformations.base import BaseTransformer
-from sktime.transformations.compose import CORE_MTYPES
+from sktime.transformations.compose._common import CORE_MTYPES
 
 
 class AttachAreaConsumerType(BaseTransformer):
