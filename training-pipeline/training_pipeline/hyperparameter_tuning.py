@@ -270,7 +270,7 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
         results = results.rename(
             columns={
                 "test_MeanAbsolutePercentageError": "MAPE",
-                "fit_time": "fit_time",
+                "fit_time": "",
                 "pred_time": "prediction_time",
             }
         )
