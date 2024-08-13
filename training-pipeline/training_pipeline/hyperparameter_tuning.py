@@ -261,7 +261,7 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
             y=y_train,
             X=X_train,
             cv=cv,
-            strategy="",
+            strategy="refit",
             scoring=MeanAbsolutePercentageError(symmetric=False),
             error_score="raise",
             return_data=False,
