@@ -256,16 +256,8 @@ def run_sweep(y_train: pd.DataFrame, X_train: pd.DataFrame, fh: int):
         plt.savefig(save_path)
         wandb.log({"cv_scheme": wandb.Image(save_path)})
 
-        results = cv_evaluate(
-            forecaster=model,
-            y=y_train,
-            X=X_train,
-            cv=cv,
-            strategy="refit",
-            scoring=MeanAbsolutePercentageError(symmetric=False),
-            error_score="raise",
-            return_data=False,
-        )
+
+
 
         results = results.rename(
             columns={
